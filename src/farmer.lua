@@ -212,6 +212,8 @@ function harvestLoop()
 
     if success then
       -- we've touched a block, assume its the edge of the farm
+      -- harvest before turning, unlikely edge here that inv is full
+      harvest()
       local blocked = false
       if row % 2 == 0 then
         turtle.turnRight()
@@ -220,9 +222,7 @@ function harvestLoop()
         if blocked then
           break
         end
-        
-        -- harvest before turning, unlikely edge here that inv is full
-        harvest()
+
         turtle.forward()
         row = row + 1
         turtle.turnRight()
@@ -236,8 +236,6 @@ function harvestLoop()
           break
         end
 
-        -- harvest before turning, unlikely edge here that inv is full
-        harvest()
         turtle.forward()
         row = row + 1
         turtle.turnLeft()
