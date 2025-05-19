@@ -180,7 +180,8 @@ function goToPosition(tx, ty, to, cx, cy, co)
 end
 
 function incTurn(turn, inc)
-  sum = turn + inc
+  print("orient incturn:" .. turn)
+  local sum = turn + inc
   if sum == 4 then
     return 0
   elseif sum == -1 then
@@ -212,6 +213,7 @@ function harvestLoop()
       local blocked = false
       if row % 2 == 0 then
         turtle.turnRight()
+        print("orient main:" .. orient)
         orient = incTurn(orient, 1)
         blocked, _ = turtle.inspect()
         if blocked then
@@ -221,9 +223,11 @@ function harvestLoop()
         turtle.forward()
         row = row + 1
         turtle.turnRight()
+        print("orient main:" .. orient)
         orient = incTurn(orient, 1)
       else
         turtle.turnLeft()
+        print("orient main:" .. orient)
         orient = incTurn(orient, -1)
 
         blocked, _ = turtle.inspect()
@@ -234,6 +238,7 @@ function harvestLoop()
         turtle.forward()
         row = row + 1
         turtle.turnLeft()
+        print("orient main:" .. orient)
         orient = incTurn(orient, -1)
       end
     end
