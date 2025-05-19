@@ -3,12 +3,14 @@ CROP_INFO = {
   ["minecraft:wheat"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:wheat_seeds" },
   ["minecraft:potatoes"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:potato" },
 }
--- how many extra fuel should be saved for when refueling
+-- how many extra fuel to save before returning
 FUEL_BUFFER = 2
+-- how many fuel items to keep in inventory
+FUEL_COUNT = 8
 --slot to store the fuel
 FUEL_SLOT = 1
--- time between harvests
-SLEEP_TIME = 100
+-- time between harvests ~10 mins seems a good time for crops to grow
+SLEEP_TIME = 10 * 60
 
 -- check if inventory is full, ie no empty slots
 function isInventoryFull()
@@ -61,12 +63,17 @@ end
 
 -- restock the turtle's fuel, assume at 0,0
 function restockFuel(facingZero)
+  turtle.select(FUEL_SLOT)
+  local count = turtle.getItemCount()
+  if count >= FUEL_COUNT then
+    return
+  end
+
   if not facingZero then
     orientZero()
   end
   turtle.turnLeft()
-  turtle.select(1)
-  turtle.suck()
+  turtle.suck(FUEL_COUNT - count)
   turtle.turnRight()
 end
 
