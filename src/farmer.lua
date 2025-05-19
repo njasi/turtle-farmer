@@ -182,7 +182,6 @@ function goToPosition(tx, ty, to, cx, cy, co)
 end
 
 function incTurn(turn, inc)
-  print("orient incturn:" .. turn)
   local sum = turn + inc
   if sum == 4 then
     return 0
@@ -216,21 +215,20 @@ function harvestLoop()
       local blocked = false
       if row % 2 == 0 then
         turtle.turnRight()
-        print("orient main:" .. orient)
         orient = incTurn(orient, 1)
         blocked, _ = turtle.inspect()
         if blocked then
           break
         end
-
+        
+        -- harvest before turning, unlikely edge here that inv is full
+        harvest()
         turtle.forward()
         row = row + 1
         turtle.turnRight()
-        print("orient main:" .. orient)
         orient = incTurn(orient, 1)
       else
         turtle.turnLeft()
-        print("orient main:" .. orient)
         orient = incTurn(orient, -1)
 
         blocked, _ = turtle.inspect()
@@ -238,10 +236,11 @@ function harvestLoop()
           break
         end
 
+        -- harvest before turning, unlikely edge here that inv is full
+        harvest()
         turtle.forward()
         row = row + 1
         turtle.turnLeft()
-        print("orient main:" .. orient)
         orient = incTurn(orient, -1)
       end
     end
@@ -282,7 +281,7 @@ end
 function main()
   while true do
     harvestLoop()
-    turtle.sleep(SLEEP_TIME)
+    sleep(SLEEP_TIME)
   end
 end
 
