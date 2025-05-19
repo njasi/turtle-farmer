@@ -3,6 +3,7 @@ CROP_INFO = {
   ["minecraft:carrots"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:carrot" },
   ["minecraft:wheat"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:wheat_seeds" },
   ["minecraft:potatoes"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:potato" },
+  ["minecraft:beatroots"] = { ["max_growth"] = 3, ["seed_item"] = "minecraft:beetroot_seeds" },
 }
 -- how many extra fuel to save before returning
 FUEL_BUFFER = 2
