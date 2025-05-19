@@ -1,3 +1,4 @@
+-- information on the crops that might be in the farm
 CROP_INFO = {
   ["minecraft:carrots"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:carrot" },
   ["minecraft:wheat"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:wheat_seeds" },
@@ -24,7 +25,7 @@ function isInventoryFull()
   return true
 end
 
--- face positive x if at 0,0
+-- face positive x iff at 0,0
 function orientZero()
   -- first we rotate until we see block
   while true do
@@ -45,7 +46,7 @@ function orientZero()
   end
 end
 
--- dump the inventory of the turtle (excepting fuel)
+-- dump the inventory of the turtle (excepting fuelslot)
 -- assume the turtle is at 0,0
 function dumpInventory(facingZero)
   if not facingZero then
@@ -62,6 +63,7 @@ function dumpInventory(facingZero)
 end
 
 -- restock the turtle's fuel, assume at 0,0
+-- dont get more fuel if we have more than FUEL_COUNT
 function restockFuel(facingZero)
   turtle.select(FUEL_SLOT)
   local count = turtle.getItemCount()
@@ -77,7 +79,8 @@ function restockFuel(facingZero)
   turtle.turnRight()
 end
 
--- find the home corner in the farm, identified by a glass above and orient self
+-- find the home corner in the farm,
+-- identified by a glass above. then orient self
 function goHome()
   while true do
     local success, data = turtle.inspectUp()
@@ -95,6 +98,7 @@ function goHome()
   end
 end
 
+-- look for item in inventory
 function findItem(name)
   for i = 2, 16 do
     turtle.select(i)
@@ -188,6 +192,7 @@ function goToPosition(tx, ty, to, cx, cy, co)
   orientTurtle(orient, to)
 end
 
+-- incrementally turn keeping track of orientation
 function incTurn(turn, inc)
   local sum = turn + inc
   if sum == 4 then
@@ -205,7 +210,7 @@ function harvestLoop()
 
   -- rows are the axis inline with the fuel chest denote as x
   local row = 0
-  -- colrs are the axis inline with the dump chest denote as y
+  -- cols are the axis inline with the dump chest denote as y
   local col = 0
 
   -- 0 is facing away from fuel chest,
@@ -219,7 +224,7 @@ function harvestLoop()
 
     if success then
       -- we've touched a block, assume its the edge of the farm
-      -- harvest before turning, unlikely edge here that inv is full
+      -- harvest before turning, unlikely edge case here that inv is full
       harvest()
       local blocked = false
       if row % 2 == 0 then
