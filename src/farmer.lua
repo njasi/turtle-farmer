@@ -92,7 +92,7 @@ function findItem(name)
   for i = 2, 16 do
     turtle.select(i)
     local item = turtle.getItemDetail()
-    if item.name == name then
+    if item ~= nil and item.name == name then
       return i
     end
   end
@@ -118,12 +118,14 @@ function harvest()
     return
   end
 
+  turtle.select(FUEL_SLOT)
   turtle.digDown()
   if findItem(crop.seed_item) == -1 then
     -- default behavior if out of seeds of this type?
     return false
+  else
+    turtle.placeDown()
   end
-  turtle.placeDown()
 
   return true
 end
