@@ -112,10 +112,10 @@ function harvest()
   local crop = CROP_INFO[data.name]
   if crop == nil then
     -- crop not in table, define default behavior
-    return
+    return false
   end
   if data.metadata ~= crop.max_growth then
-    return
+    return false
   end
 
   turtle.select(FUEL_SLOT)
@@ -245,8 +245,7 @@ function harvestLoop()
         orient = incTurn(orient, -1)
       end
     end
-
-    harvest()
+    local checkInventory = harvest()
 
     local needsFuel = false
     if turtle.getFuelLevel() < row + col + FUEL_BUFFER then
@@ -259,7 +258,7 @@ function harvestLoop()
     end
 
     -- return whenever fuel is needed or inventory is full
-    if isInventoryFull() or needsFuel then
+    if (checkInventory and isInventoryFull()) or needsFuel then
       goToPosition(0, 0, 0, row, col, orient)
       dumpInventory(true)
       restockFuel(true)
@@ -279,7 +278,6 @@ function harvestLoop()
   dumpInventory(false)
   restockFuel(true)
 end
-
 
 function main()
   while true do
