@@ -23,11 +23,11 @@ We have a list of requirements for how your farm is made below. Let the home pos
 - The farm should be rectangular.
 - The farm must be surrounded by 2 high walls (or just a 1 high wall on the same level as the turtle).
 - The farm should be fully planted before starting the farmer.
-- There should be a glass block above your home position (3 blocks above the dirt of your farm)
-- Facing inwards standing at your home:
+- There should be a glass block above your home position (2 air blocks above the dirt of your farm)
+- Facing the center of the farm standing at your home:
   - The right wall should be a chest to dump items into
   - The left wall should be a chest to retrieve fuel from
-  - Both chests should be 2 blocks above the dirt
+  - Both chests should be 1 air block above the dirt
 - The turtle should be placed directly ontop of the crops, perferrably in the home position.
 
 Example:
