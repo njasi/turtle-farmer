@@ -187,6 +187,7 @@ function incTurn(turn, inc)
   elseif sum == -1 then
     return 3
   end
+  return sum
 end
 
 -- main work loop
