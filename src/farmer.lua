@@ -286,7 +286,7 @@ function harvestLoop()
         harvestTall(crop)
       else
         -- otherwise we try turning
-        local success, o = handleTurn()
+        local success, o = handleTurn(orient, row)
         orient = o
         row = row + 1
         if not success then
