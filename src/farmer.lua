@@ -6,7 +6,7 @@ CROP_INFO = {
   ["minecraft:beetroots"] = { ["max_growth"] = 3, ["seed_item"] = "minecraft:beetroot_seeds" },
   ["minecraft:pumpkin"] = { ["max_growth"] = 0, ["seed_item"] = nil },
   ["minecraft:melon_block"] = { ["max_growth"] = nil, ["seed_item"] = nil },
-  ["minecraft:cactus"] = { ["max_growth"] = nil, ["seed_item"] = nil, ["max_height"] = 3 },
+  ["minecraft:cactus"] = { ["max_growth"] = nil, ["seed_item"] = nil, ["max_height"] = 3, ["shy"] = true },
   ["minecraft:reeds"] = { ["max_growth"] = nil, ["seed_item"] = nil, ["max_height"] = 3 },
 }
 -- how many extra fuel to save before returning
@@ -177,7 +177,9 @@ function incTurn(turn, inc)
   return sum
 end
 
--- inspect the block below, mine it and replace with the related seed item
+-- inspect the block below, mine it and replace with the
+-- related seed item if applicable
+
 function harvest()
   success, data = turtle.inspectDown()
 
@@ -209,6 +211,50 @@ function harvest()
   return true
 end
 
+-- harvest a tall crop if we run into one
+function harvestTall(crop)
+  -- go up
+  for _ = 1, crop.max_height - 2 do
+    turtle.up()
+  end
+
+  -- go down and harvest 1 by 1
+  for _ = 1, crop.max_height - 2 do
+    turtle.dig()
+    turtle.down()
+  end
+end
+
+-- turn around when reaching an end of the farm
+-- return 2 tuple
+-- true if success/false if blocked, orient
+function handleTurn(orient, row)
+  if row % 2 == 0 then
+    turtle.turnRight()
+    orient = incTurn(orient, 1)
+    local f = turtle.forward()
+
+    if not f then
+      return false, orient
+    end
+
+    turtle.turnRight()
+    orient = incTurn(orient, 1)
+  else
+    turtle.turnLeft()
+    orient = incTurn(orient, -1)
+
+    local f = turtle.forward()
+    if not f then
+      return false, orient
+    end
+
+    turtle.turnLeft()
+    orient = incTurn(orient, -1)
+  end
+  return true, orient, nil
+end
+
 -- main harvesting loop
 function harvestLoop()
   -- go home at start
@@ -225,39 +271,46 @@ function harvestLoop()
   -- 3 to the left
   local orient = 0
 
-  while true do
-    local success, _ = turtle.inspect()
+  local forward = true
 
-    if success then
+  while true do
+    if not forward then
       -- we've touched a block, assume its the edge of the farm
       -- harvest before turning, unlikely edge case here that inv is full
       harvest()
-      local blocked = false
-      if row % 2 == 0 then
-        turtle.turnRight()
-        orient = incTurn(orient, 1)
-        blocked, _ = turtle.inspect()
-        if blocked then
-          break
-        end
+      local _, data = turtle.inspect()
+      local crop = CROP_INFO[data.name]
 
-        turtle.forward()
-        row = row + 1
-        turtle.turnRight()
-        orient = incTurn(orient, 1)
+      if crop ~= nil and crop.max_height ~= nil then
+        -- if we've just run into a tall crop harvest it
+        harvestTall(crop)
       else
-        turtle.turnLeft()
-        orient = incTurn(orient, -1)
-
-        blocked, _ = turtle.inspect()
-        if blocked then
-          break
-        end
-
-        turtle.forward()
+        -- otherwise we try turning
+        local success, o = handleTurn()
+        orient = o
         row = row + 1
-        turtle.turnLeft()
-        orient = incTurn(orient, -1)
+        if not success then
+          -- not gonna verify block is there since
+          -- we just ran into it
+          local _, data = turtle.inspect()
+          local crop = CROP_INFO[data.name]
+
+          -- if the thing that stopped our turn was a crop
+          -- then harvest it and resume turning
+          if crop ~= nil and crop.max_height ~= nil then
+            harvestTall(crop)
+            if row % 2 == 0 then
+              turtle.turnLeft()
+              orient = incTurn(orient, -1)
+            else
+              turtle.turnRight()
+              orient = incTurn(orient, 1)
+            end
+          else
+            -- else we ran into a wall and should break
+            break
+          end
+        end
       end
     end
     local checkInventory = harvest()
@@ -280,7 +333,7 @@ function harvestLoop()
       goToPosition(row, col, orient, 0, 0, 0)
     end
 
-    turtle.forward()
+    forward = turtle.forward()
     if row % 2 == 0 then
       col = col + 1
     else
