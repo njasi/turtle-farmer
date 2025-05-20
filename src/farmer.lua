@@ -6,8 +6,8 @@ CROP_INFO = {
   ["minecraft:beetroots"] = { ["max_growth"] = 3, ["seed_item"] = "minecraft:beetroot_seeds" },
   ["minecraft:pumpkin"] = { ["max_growth"] = nil, ["seed_item"] = nil },
   ["minecraft:melon_block"] = { ["max_growth"] = nil, ["seed_item"] = nil },
-  ["minecraft:cactus"] = { ["max_growth"] = nil, ["seed_item"] = nil, ["max_height"] = 3, ["shy"] = true },
-  ["minecraft:reeds"] = { ["max_growth"] = nil, ["seed_item"] = nil, ["max_height"] = 3 },
+  ["minecraft:cactus"] = { ["max_growth"] = -1, ["seed_item"] = nil, ["max_height"] = 3, ["shy"] = true },
+  ["minecraft:reeds"] = { ["max_growth"] = -1, ["seed_item"] = nil, ["max_height"] = 3 },
 }
 -- how many extra fuel to save before returning
 FUEL_BUFFER = 2
@@ -223,6 +223,7 @@ function harvestTall(crop)
     turtle.dig()
     turtle.down()
   end
+  turtle.dig()
 end
 
 -- turn around when reaching an end of the farm
