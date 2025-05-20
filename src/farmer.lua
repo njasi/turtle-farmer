@@ -112,6 +112,7 @@ end
 
 -- find the home corner in the farm,
 -- identified by a glass above. then orient self
+-- TODO handle tall crops while trying to home
 function findHome()
   while true do
     local success, data = turtle.inspectUp()
@@ -194,7 +195,7 @@ function harvest()
     -- crop not in table, define default behavior
     return false
   end
-  -- crop not grown / skip if max_growth is nil
+  -- crop not grown / skip check if max_growth is nil
   if crop.max_growth ~= nil and data.metadata ~= crop.max_growth then
     return false
   end
@@ -214,11 +215,13 @@ end
 -- harvest a tall crop if we run into one
 function harvestTall(crop)
   -- go up
+  -- TODO error handle for when t hits ceiling
   for _ = 1, crop.max_height - 2 do
     turtle.up()
   end
 
   -- go down and harvest 1 by 1
+  turtle.select(FUEL_SLOT)
   for _ = 1, crop.max_height - 2 do
     turtle.dig()
     turtle.down()
@@ -300,6 +303,7 @@ function harvestLoop()
           -- then harvest it and resume turning
           if crop ~= nil and crop.max_height ~= nil then
             harvestTall(crop)
+            turtle.forward()
             if row % 2 == 0 then
               turtle.turnLeft()
               orient = incTurn(orient, -1)
