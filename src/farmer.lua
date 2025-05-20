@@ -4,6 +4,10 @@ CROP_INFO = {
   ["minecraft:wheat"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:wheat_seeds" },
   ["minecraft:potatoes"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:potato" },
   ["minecraft:beetroots"] = { ["max_growth"] = 3, ["seed_item"] = "minecraft:beetroot_seeds" },
+  ["minecraft:pumpkin"] = { ["max_growth"] = 0, ["seed_item"] = nil },
+  ["minecraft:melon_block"] = { ["max_growth"] = nil, ["seed_item"] = nil },
+  ["minecraft:cactus"] = { ["max_growth"] = nil, ["seed_item"] = nil, ["max_height"] = 3 },
+  ["minecraft:reeds"] = { ["max_growth"] = nil, ["seed_item"] = nil, ["max_height"] = 3 },
 }
 -- how many extra fuel to save before returning
 FUEL_BUFFER = 2
@@ -11,8 +15,20 @@ FUEL_BUFFER = 2
 FUEL_COUNT = 8
 --slot to store the fuel
 FUEL_SLOT = 1
--- time between harvests ~10 mins seems a good time for crops to grow
+-- time between harvests ~10 mins seems a good time for crops to grow idk
 SLEEP_TIME = 10 * 60
+
+-- look for item in inventory
+function findItem(name)
+  for i = 2, 16 do
+    turtle.select(i)
+    local item = turtle.getItemDetail()
+    if item ~= nil and item.name == name then
+      return i
+    end
+  end
+  return -1
+end
 
 -- check if inventory is full, ie no empty slots
 function isInventoryFull()
@@ -24,27 +40,6 @@ function isInventoryFull()
     end
   end
   return true
-end
-
--- face positive x iff at 0,0
-function orientZero()
-  -- first we rotate until we see block
-  while true do
-    success, _ = turtle.inspect()
-    if success then
-      break
-    end
-    turtle.turnRight()
-  end
-
-  -- then rotate until we see air
-  while true do
-    success, _ = turtle.inspect()
-    if not success then
-      break
-    end
-    turtle.turnRight()
-  end
 end
 
 -- dump the inventory of the turtle (excepting fuelslot)
@@ -78,84 +73,6 @@ function restockFuel(facingZero)
   turtle.turnLeft()
   turtle.suck(FUEL_COUNT - count)
   turtle.turnRight()
-end
-
--- find the home corner in the farm,
--- identified by a glass above. then orient self
-function goHome()
-  while true do
-    local success, data = turtle.inspectUp()
-    if success and data.name == "minecraft:glass" then
-      -- orient self towards an air block
-      orientZero()
-      break
-    end
-
-    success, _ = turtle.inspect()
-    if success then
-      turtle.turnRight()
-    end
-    turtle.forward()
-  end
-end
-
--- look for item in inventory
-function findItem(name)
-  for i = 2, 16 do
-    turtle.select(i)
-    local item = turtle.getItemDetail()
-    if item ~= nil and item.name == name then
-      return i
-    end
-  end
-  return -1
-end
-
--- inspect the block below, mine it and replace with the related seed item
-function harvest()
-  success, data = turtle.inspectDown()
-
-  -- TODO define some default behavior here
-  if not success then
-    return false
-  end
-
-  -- lookup crop info, break if ready
-  local crop = CROP_INFO[data.name]
-  if crop == nil then
-    -- crop not in table, define default behavior
-    return false
-  end
-  if data.metadata ~= crop.max_growth then
-    return false
-  end
-
-  turtle.select(FUEL_SLOT)
-  turtle.digDown()
-  if findItem(crop.seed_item) == -1 then
-    -- default behavior if out of seeds of this type?
-    return false
-  else
-    turtle.placeDown()
-  end
-
-  return true
-end
-
--- turn a turtle to match desired orientation
-function orientTurtle(current, target)
-  if current == target then
-    return target
-  elseif current > target then
-    for _ = 1, current - target do
-      turtle.turnLeft()
-    end
-  elseif current < target then
-    for _ = 1, target - current do
-      turtle.turnRight()
-    end
-  end
-  return target
 end
 
 -- goto a position relative to the home
@@ -193,6 +110,62 @@ function goToPosition(tx, ty, to, cx, cy, co)
   orientTurtle(orient, to)
 end
 
+-- find the home corner in the farm,
+-- identified by a glass above. then orient self
+function findHome()
+  while true do
+    local success, data = turtle.inspectUp()
+    if success and data.name == "minecraft:glass" then
+      -- orient self towards an air block
+      orientZero()
+      break
+    end
+
+    success, _ = turtle.inspect()
+    if success then
+      turtle.turnRight()
+    end
+    turtle.forward()
+  end
+end
+
+-- face positive x iff at 0,0
+function orientZero()
+  -- first we rotate until we see block
+  while true do
+    success, _ = turtle.inspect()
+    if success then
+      break
+    end
+    turtle.turnRight()
+  end
+
+  -- then rotate until we see air
+  while true do
+    success, _ = turtle.inspect()
+    if not success then
+      break
+    end
+    turtle.turnRight()
+  end
+end
+
+-- turn a turtle to match desired orientation
+function orientTurtle(current, target)
+  if current == target then
+    return target
+  elseif current > target then
+    for _ = 1, current - target do
+      turtle.turnLeft()
+    end
+  elseif current < target then
+    for _ = 1, target - current do
+      turtle.turnRight()
+    end
+  end
+  return target
+end
+
 -- incrementally turn keeping track of orientation
 function incTurn(turn, inc)
   local sum = turn + inc
@@ -204,10 +177,42 @@ function incTurn(turn, inc)
   return sum
 end
 
--- main work loop
+-- inspect the block below, mine it and replace with the related seed item
+function harvest()
+  success, data = turtle.inspectDown()
+
+  -- TODO define some default behavior here
+  if not success then
+    return false
+  end
+
+  -- lookup crop info, break if ready
+  local crop = CROP_INFO[data.name]
+  if crop == nil then
+    -- crop not in table, define default behavior
+    return false
+  end
+  -- crop not grown / skip if max_growth is nil
+  if crop.max_growth ~= nil and data.metadata ~= crop.max_growth then
+    return false
+  end
+
+  turtle.select(FUEL_SLOT)
+  turtle.digDown()
+  if findItem(crop.seed_item) == -1 then
+    -- default behavior if out of seeds of this type?
+    return false
+  else
+    turtle.placeDown()
+  end
+
+  return true
+end
+
+-- main harvesting loop
 function harvestLoop()
   -- go home at start
-  goHome()
+  findHome()
 
   -- rows are the axis inline with the fuel chest denote as x
   local row = 0
@@ -284,11 +289,12 @@ function harvestLoop()
   end
   -- broke out of harvest loop, must have hit the ending wall when turning
 
-  goHome()
+  findHome()
   dumpInventory(false)
   restockFuel(true)
 end
 
+-- main loop of harvesting loops lol
 function main()
   while true do
     harvestLoop()
