@@ -4,7 +4,7 @@ CROP_INFO = {
   ["minecraft:wheat"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:wheat_seeds" },
   ["minecraft:potatoes"] = { ["max_growth"] = 7, ["seed_item"] = "minecraft:potato" },
   ["minecraft:beetroots"] = { ["max_growth"] = 3, ["seed_item"] = "minecraft:beetroot_seeds" },
-  ["minecraft:pumpkin"] = { ["max_growth"] = 0, ["seed_item"] = nil },
+  ["minecraft:pumpkin"] = { ["max_growth"] = nil, ["seed_item"] = nil },
   ["minecraft:melon_block"] = { ["max_growth"] = nil, ["seed_item"] = nil },
   ["minecraft:cactus"] = { ["max_growth"] = nil, ["seed_item"] = nil, ["max_height"] = 3, ["shy"] = true },
   ["minecraft:reeds"] = { ["max_growth"] = nil, ["seed_item"] = nil, ["max_height"] = 3 },
